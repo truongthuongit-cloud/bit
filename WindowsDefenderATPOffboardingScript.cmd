@@ -71,7 +71,6 @@ set "successOutput=Successfully offboarded machine from Microsoft Defender for E
 %powershellPath% -ExecutionPolicy Bypass -NoProfile -Command "Add-Type 'using System; using System.Diagnostics; using System.Diagnostics.Tracing; namespace Sense { [EventData(Name = \"Offboarding\")]public struct Offboarding{public string Message { get; set; }} public class Trace {public static EventSourceOptions TelemetryCriticalOption = new EventSourceOptions(){Level = EventLevel.Informational, Keywords = (EventKeywords)0x0000200000000000, Tags = (EventTags)0x0200000}; public void WriteOffboardingMessage(string message){es.Write(\"OffboardingScript\", TelemetryCriticalOption, new Offboarding {Message = message});} private static readonly string[] telemetryTraits = { \"ETW_GROUP\", \"{5ECB0BAC-B930-47F5-A8A4-E8253529EDB7}\" }; private EventSource es = new EventSource(\"Microsoft.Windows.Sense.Client.Management\",EventSourceSettings.EtwSelfDescribingEventFormat,telemetryTraits);}}'; $logger = New-Object -TypeName Sense.Trace; $logger.WriteOffboardingMessage('%successOutput%')" >NUL 2>&1
 echo %successOutput%
 echo.
-eventcreate /l Application /so WDATPOffboarding /t Information /id 20 /d "%successOutput%" >NUL 2>&1
 
 goto EXIT
 
@@ -82,7 +81,6 @@ set "errorOutput=[Error Id: %errorCode%, Error Level: %lastError%] %errorDescrip
 echo %errorOutput%
 echo %troubleshootInfo%
 echo.
-eventcreate /l Application /so WDATPOffboarding /t Error /id %errorCode% /d "%errorOutput%" >NUL 2>&1
 goto EXIT
 
 :EXIT
