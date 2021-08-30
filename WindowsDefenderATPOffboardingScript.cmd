@@ -1,28 +1,16 @@
 @echo off
 
-echo.
-echo Starting Microsoft Defender for Endpoint offboarding process...
-echo.
-
 set errorCode=0
 set lastError=0
 set "troubleshootInfo=For more information, visit: https://go.microsoft.com/fwlink/p/?linkid=822807"
 set "errorDescription="
 
-echo Testing administrator privileges
-
 net session >NUL 2>&1
 if %ERRORLEVEL% NEQ 0 (
-	@echo Script is running with insufficient privileges. Please run with administrator privileges> %TMP%\senseTmp.txt
 	set errorCode=65
  set lastError=%ERRORLEVEL%
 	GOTO ERROR
 )
-
-echo Script is running with sufficient privileges
-echo.
-echo Performing offboarding operations
-echo.
 
 IF [%PROCESSOR_ARCHITEW6432%] EQU [] (
   set powershellPath=%windir%\System32\WindowsPowerShell\v1.0\powershell.exe
@@ -55,7 +43,6 @@ set /a counter=0
 sc query "SENSE" | find /i "STOPPED" >NUL 2>&1
 if %ERRORLEVEL% NEQ 0 (
 	IF %counter% EQU 5 (
-		@echo Microsoft Defender for Endpoint Service failed to stop running!> %TMP%\senseTmp.txt
 		set errorCode=15
      set lastError=%ERRORLEVEL%
 		GOTO ERROR
@@ -69,8 +56,6 @@ if %ERRORLEVEL% NEQ 0 (
 
 set "successOutput=Successfully offboarded machine from Microsoft Defender for Endpoint"
 %powershellPath% -ExecutionPolicy Bypass -NoProfile -Command "Add-Type 'using System; using System.Diagnostics; using System.Diagnostics.Tracing; namespace Sense { [EventData(Name = \"Offboarding\")]public struct Offboarding{public string Message { get; set; }} public class Trace {public static EventSourceOptions TelemetryCriticalOption = new EventSourceOptions(){Level = EventLevel.Informational, Keywords = (EventKeywords)0x0000200000000000, Tags = (EventTags)0x0200000}; public void WriteOffboardingMessage(string message){es.Write(\"OffboardingScript\", TelemetryCriticalOption, new Offboarding {Message = message});} private static readonly string[] telemetryTraits = { \"ETW_GROUP\", \"{5ECB0BAC-B930-47F5-A8A4-E8253529EDB7}\" }; private EventSource es = new EventSource(\"Microsoft.Windows.Sense.Client.Management\",EventSourceSettings.EtwSelfDescribingEventFormat,telemetryTraits);}}'; $logger = New-Object -TypeName Sense.Trace; $logger.WriteOffboardingMessage('%successOutput%')" >NUL 2>&1
-echo %successOutput%
-echo.
 
 goto EXIT
 
@@ -78,9 +63,7 @@ goto EXIT
 Set /P errorMsg=<%TMP%\senseTmp.txt
 set "errorOutput=[Error Id: %errorCode%, Error Level: %lastError%] %errorDescription% Error message: %errorMsg%"
 %powershellPath% -ExecutionPolicy Bypass -NoProfile -Command "Add-Type 'using System; using System.Diagnostics; using System.Diagnostics.Tracing; namespace Sense { [EventData(Name = \"Offboarding\")]public struct Offboarding{public string Message { get; set; }} public class Trace {public static EventSourceOptions TelemetryCriticalOption = new EventSourceOptions(){Level = EventLevel.Error, Keywords = (EventKeywords)0x0000200000000000, Tags = (EventTags)0x0200000}; public void WriteOffboardingMessage(string message){es.Write(\"OffboardingScript\", TelemetryCriticalOption, new Offboarding {Message = message});} private static readonly string[] telemetryTraits = { \"ETW_GROUP\", \"{5ECB0BAC-B930-47F5-A8A4-E8253529EDB7}\" }; private EventSource es = new EventSource(\"Microsoft.Windows.Sense.Client.Management\",EventSourceSettings.EtwSelfDescribingEventFormat,telemetryTraits);}}'; $logger = New-Object -TypeName Sense.Trace; $logger.WriteOffboardingMessage('%errorOutput%')" >NUL 2>&1
-echo %errorOutput%
-echo %troubleshootInfo%
-echo.
+
 goto EXIT
 
 :EXIT
