@@ -1,4 +1,6 @@
 7.19.2
+https://vod-updates.8x8.com/ga/work-64-exe-v7.19.2-2.exe
 https://vod-updates.8x8.com/ga/work-64-msi-v7.19.2-2.msi
 7.16.3
+https://vod-updates.8x8.com/ga/work-32-exe-v7.16.3-1.exe
 https://vod-updates.8x8.com/ga/work-32-msi-v7.16.3-1.msi
